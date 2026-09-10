@@ -1,8 +1,8 @@
 # Dépendances Node.js
-node_modules/
+./node_modules
 
 # Variables d'environnement et secrets (CRUCIAL)
-.env
+./.env
 
 # Logs d'erreurs npm
 npm-debug.log*
