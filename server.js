@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const redis = require('redis'); // Import du client Redis
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,20 @@ redisClient.on('error', (err) => console.error('Erreur Redis :', err));
 redisClient.connect().catch(console.error);
 
 app.use(express.json());
+
+// Configuration du limiteur de requêtes
+const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // Fenêtre de 1 minute
+    max: 5, // Limite chaque IP à 5 requêtes par fenêtre de temps
+    message: {
+        error: "Vous avez dépassé la limite de requêtes. Veuillez réessayer dans une minute."
+    },
+    standardHeaders: true, // Renvoie les infos de limite dans les en-têtes `RateLimit-*`
+    legacyHeaders: false, // Désactive les anciens en-têtes `X-RateLimit-*`
+});
+
+// Application du middleware UNIQUEMENT sur la route API
+app.use('/api/', apiLimiter);
 
 app.get('/api/weather/:city', async (req, res) => {
     // Normalisation en minuscules pour éviter que "Conakry" et "conakry" créent deux caches différents
